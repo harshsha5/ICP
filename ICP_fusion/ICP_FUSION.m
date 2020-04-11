@@ -18,8 +18,9 @@ end
 
 %==== TEST: Debug ICP or point-based fusion (0: false, 1: true)====
 is_debug_icp = 1;
-is_debug_fusion = 0;
+is_debug_fusion = 1;
 is_eval = 1;
+is_all = is_debug_icp && is_debug_fusion && is_eval;
 
 %==== Set start time ====
 tic;
@@ -47,6 +48,9 @@ for t = 1:T
     %==== Get input data from seq{} ====
     pointcloud = seq{t, 1};
     normals = seq{t, 2};
+    if is_all
+        pointcloud.Normal = normals;
+    end %% ADD
     
     %==== Downsample input data ====
     [ds_pointcloud, ds_normals] = downsampleData(pointcloud, normals, ds_ratio);
@@ -56,6 +60,9 @@ for t = 1:T
 
         %==== Initialize the fusion map ====            
         fusion_map = initMap(pointcloud, normals, h, w, sigma);
+        if is_all
+            fusion_map.pointcloud.Normal = reshape(normals, [h*w,3]);
+        end %% ADD
          
         %==== Initialize the first 4-by-4 pose matrix to identity ====
         current_pose = affine3d(eye(4));
@@ -113,6 +120,9 @@ end
 
 %==== Plot output 3D fusion map ====
 plotTrajAndMap(positions, fusion_map);
+if is_all
+    fusion_map.normals = fusion_map.pointcloud.Normal;
+end %% ADD
 
 %==== EVAL: Visualize normals, ccounts, and times ====
 plotEvalMaps(fusion_map, is_eval);
