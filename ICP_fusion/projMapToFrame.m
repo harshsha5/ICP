@@ -40,6 +40,13 @@ function [proj_map, proj_flag] = projMapToFrame(fusion_map, h, w, tform, cam_par
     non_zero_image_coordinates = image_coordinates(:,proj_flag');
 
     pixel_2_row_index = h*(non_zero_image_coordinates(1,:)') + non_zero_image_coordinates(2,:)'+1;
+    %This pixel_2_row_index formula is counter-inutitive. You would expect
+    %to convert a pixel to row  index for our case as  (C-1)*h + R . By for
+    %our case I mean the stacking pattern when you reshape is such that
+    %elements are stacked row wise each height block by height block. 
+    %However, the pixel_2_row_index formula becomes h*R + C + 1, owing to the fact 
+    %that image coordinates are reversed ie.  (y,x) and also that they
+    %start from (0,0) and not (1,1) as you'd think in Matlab.
     proj_points(pixel_2_row_index,:) = fusion_map.pointcloud.Location(proj_flag,:);
     proj_colors(pixel_2_row_index,:) = fusion_map.pointcloud.Color(proj_flag,:);
     proj_normals(pixel_2_row_index,:) = fusion_map.normals(proj_flag,:);
