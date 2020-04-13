@@ -31,22 +31,26 @@ function [proj_map, proj_flag] = projMapToFrame(fusion_map, h, w, tform, cam_par
     
     % Form a 3D matrix of the appropriate correspondences- pixel to
     % fusion_map mapping
-    proj_points = zeros(h , w, 3);
-    proj_colors = zeros(h , w, 3);
-    proj_normals = zeros(h , w, 3);
-    proj_ccounts = zeros(h , w);
-    proj_times = zeros(h , w);
+    proj_points = zeros(h * w, 3);
+    proj_colors = zeros(h * w, 3);
+    proj_normals = zeros(h * w, 3);
+    proj_ccounts = zeros(h * w,1);
+    proj_times = zeros(h * w,1);
     
-    for i = 1:size(image_coordinates,2)
-        if(image_coordinates(:,i) == zeros(2,1))
-            continue
-        end
-        proj_points(image_coordinates(1,i),image_coordinates(2,i),:) = fusion_map.pointcloud.Location(i,:);
-        proj_colors(image_coordinates(1,i),image_coordinates(2,i),:) = fusion_map.pointcloud.Color(i,:);
-        proj_normals(image_coordinates(1,i),image_coordinates(2,i),:) = fusion_map.normals(i,:);
-        proj_ccounts(image_coordinates(1,i),image_coordinates(2,i)) = fusion_map.ccounts(i,:);
-        proj_times(image_coordinates(1,i),image_coordinates(2,i)) = fusion_map.times(i,:);
-    end
+    non_zero_image_coordinates = image_coordinates(:,proj_flag');
+
+    pixel_2_row_index = h*(non_zero_image_coordinates(1,:)') + non_zero_image_coordinates(2,:)'+1;
+    proj_points(pixel_2_row_index,:) = fusion_map.pointcloud.Location(proj_flag,:);
+    proj_colors(pixel_2_row_index,:) = fusion_map.pointcloud.Color(proj_flag,:);
+    proj_normals(pixel_2_row_index,:) = fusion_map.normals(proj_flag,:);
+    proj_ccounts(pixel_2_row_index) = fusion_map.ccounts(proj_flag,:);
+    proj_times(pixel_2_row_index) = fusion_map.times(proj_flag,:);
+
+    proj_points = reshape(proj_points,[h,w,3]);
+    proj_colors = reshape(proj_colors,[h,w,3]);
+    proj_normals = reshape(proj_normals,[h,w,3]);
+    proj_ccounts = reshape(proj_ccounts,[h,w]);
+    proj_times = reshape(proj_times,[h,w]);
         
     %==== Output the projected map in a struct ====
     %==== (Notice: proj_points[], proj_colors[], and proj_normals[] are all 3D matrices with size h*w*3) ====
